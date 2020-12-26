@@ -43,28 +43,40 @@ local function all_zero(t)
     return true
 end
 
+local cached_surrounding_coords = {}
 local function surrounding_coords(coords)
-    local add = {}
-    local ret = {}
     local dim = #coords
-    for i = 1, dim do
-        add[i] = -1
-    end
-    while add[1] < 2 do
-        if not all_zero(add) then
-            local t = {}
-            for i = 1, dim do
-                t[i] = coords[i] + add[i]
-            end
-            ret[#ret+1] = t
-        end
-        add[dim] = add[dim] + 1
-        local i = dim
-        while add[i] > 1 do
+    if not cached_surrounding_coords[dim] then
+        local add = {}
+        local cached = {}
+        cached_surrounding_coords[dim] = cached
+        for i = 1, dim do
             add[i] = -1
-            add[i-1] = add[i-1] + 1
-            i = i > 2 and i - 1 or 2
         end
+        while add[1] < 2 do
+            if not all_zero(add) then
+                local t = {}
+                for k, v in ipairs(add) do
+                    t[k] = v
+                end
+                cached[#cached+1] = t
+            end
+            add[dim] = add[dim] + 1
+            local i = dim
+            while add[i] > 1 do
+                add[i] = -1
+                add[i-1] = add[i-1] + 1
+                i = i > 2 and i - 1 or 2
+            end
+        end
+    end
+    local ret = {}
+    for k, add in ipairs(cached_surrounding_coords[dim]) do
+        local t = {}
+        for i = 1, dim do
+            t[i] = coords[i] + add[i]
+        end
+        ret[k] = t
     end
     return ret
 end
